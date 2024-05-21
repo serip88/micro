@@ -1,21 +1,15 @@
-FROM alpine:3.18 as builder
+FROM felixnilam/php5.4-apache-ext
 
-COPY --from=golang:1.20.4-alpine3.18 /usr/local/go/ /usr/local/go/
-ENV PATH="/usr/local/go/bin:${PATH}"
-RUN apk --no-cache add make git gcc libtool musl-dev
+WORKDIR /app
 
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
-COPY . /
-RUN make ; rm -rf $GOPATH/pkg/mod
+COPY composer.json composer.phar .
 
-FROM alpine:3.18
-COPY --from=golang:1.20.4-alpine3.18 /usr/local/go/ /usr/local/go/
-ENV PATH="/usr/local/go/bin:${PATH}"
+RUN phar install -g composer/composer
 
-RUN apk --no-cache add make git gcc libtool musl-dev
-RUN apk --no-cache add ca-certificates && rm -rf /var/cache/apk/* /tmp/* 
+COPY . .
 
-COPY --from=builder /micro /micro
-ENTRYPOINT ["/micro"]
+RUN composer install
+
+EXPOSE 81
+
+CMD ["php", "-S", "0.0.0.0:81"]
