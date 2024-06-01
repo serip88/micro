@@ -1,15 +1,22 @@
-FROM felixnilam/php5.4-apache-ext
+# version name:  php8.2.v4
+# Use the official PHP image with Apache and PHP 8.2
+FROM php:8.2-apache
 
-WORKDIR /app
+# Install additional PHP extensions if needed
+RUN docker-php-ext-install mysqli
 
-COPY composer.json composer.phar .
+# Install Git
+RUN apt-get update && apt-get install -y git vim && rm -rf /var/lib/apt/lists/*
 
-RUN phar install -g composer/composer
+# Copy application files to the web server's root directory
+COPY . /var/www/html/
 
-COPY . .
+# Set permissions for the web server
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
 
-RUN composer install
+# Expose port 80 to be accessible outside the container
+EXPOSE 80
 
-EXPOSE 81
-
-CMD ["php", "-S", "0.0.0.0:81"]
+# Start Apache in the foreground
+CMD ["apache2-foreground"]
