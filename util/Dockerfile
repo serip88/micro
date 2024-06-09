@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
 # Set the working directory in the container.
 WORKDIR /app
@@ -11,6 +11,9 @@ RUN npm install
 
 # Copy the rest of the application code to the working directory.
 COPY . .
+
+# List the files and folders in the working directory
+# RUN ls -la /app
 
 # Build the Next.js application.
 RUN npm run build
