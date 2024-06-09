@@ -1,22 +1,25 @@
-# version name:  php8.2.v4
-# Use the official PHP image with Apache and PHP 8.2
-FROM php:8.2-apache
+FROM node:18-alpine AS builder
 
-# Install additional PHP extensions if needed
-RUN docker-php-ext-install mysqli
+# Set the working directory in the container.
+WORKDIR /app
 
-# Install Git
-RUN apt-get update && apt-get install -y git vim && rm -rf /var/lib/apt/lists/*
+# Copy package.json and package-lock.json to the working directory.
+COPY package*.json ./
 
-# Copy application files to the web server's root directory
-COPY . /var/www/html/
+# Install dependencies.
+RUN npm install
 
-# Set permissions for the web server
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+# Copy the rest of the application code to the working directory.
+COPY . .
 
-# Expose port 80 to be accessible outside the container
-EXPOSE 80
+# List the files and folders in the working directory
+# RUN ls -la /app
 
-# Start Apache in the foreground
-CMD ["apache2-foreground"]
+# Build the Next.js application.
+RUN npm run build
+
+# Expose port 3000 to the outside world.
+EXPOSE 3000
+
+# Start the Next.js application.
+CMD ["npm", "start"]
